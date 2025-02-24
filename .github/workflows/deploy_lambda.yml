@@ -7,7 +7,7 @@ on:
 
 env:
   AWS_REGION: us-west-2
-  LAMBDA_FUNCTION_NAME: MySimpleLambdaFunction
+  LAMBDA_FUNCTION_NAME: Yfinance-Data-ETL
   AWS_ROLE_TO_ASSUME: arn:aws:iam::650251730947:role/gitactions-lambda-role
 
 permissions:
@@ -64,7 +64,7 @@ jobs:
             echo "Creating Lambda function..."
             aws lambda create-function \
               --function-name ${{ env.LAMBDA_FUNCTION_NAME }} \
-              --runtime python3.8 \
+              --runtime python3.12 \
               --role ${{ env.AWS_ROLE_TO_ASSUME }} \
               --handler lambda_function.lambda_handler \
               --zip-file fileb://function.zip
