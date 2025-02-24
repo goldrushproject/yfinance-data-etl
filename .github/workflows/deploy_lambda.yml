@@ -1,0 +1,41 @@
+name: Deploy Python Lambda
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          cd lambda_function
+          pip install -r requirements.txt -t .
+
+      - name: Zip files
+        run: |
+          cd lambda_function
+          zip -r ../lambda_function.zip .
+
+      - name: Deploy to AWS Lambda
+        uses: aws-actions/aws-cli-action@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+
+      - run: |
+          aws lambda update-function-code \
+            --function-name your-lambda-function-name \
+            --zip-file fileb://lambda_function.zip
