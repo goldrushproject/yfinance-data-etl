@@ -37,5 +37,5 @@ jobs:
 
       - run: |
           aws lambda update-function-code \
-            --function-name your-lambda-function-name \
+            --function-name Yfinance-Data-ETL \
             --zip-file fileb://lambda_function.zip
