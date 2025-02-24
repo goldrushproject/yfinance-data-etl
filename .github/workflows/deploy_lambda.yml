@@ -1,41 +1,80 @@
-name: Deploy Python Lambda
+name: Deploy Lambda Function
 
 on:
   push:
     branches:
       - main
 
+env:
+  AWS_REGION: us-east-1
+  LAMBDA_FUNCTION_NAME: MySimpleLambdaFunction
+  AWS_ROLE_TO_ASSUME: arn:aws:iam::{aws-account-number}:role/{lambda-role-name}
+
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   deploy:
+    name: Deploy Lambda
     runs-on: ubuntu-latest
+    environment: production
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v3
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v4
         with:
           python-version: "3.12"
 
       - name: Install dependencies
         run: |
-          cd lambda_function
-          pip install -r requirements.txt -t .
+          pip install -r requirements.txt
 
-      - name: Zip files
+      - name: Run unit tests
         run: |
-          cd lambda_function
-          zip -r ../lambda_function.zip .
+          python -m unittest discover -s . -p 'test_*.py'
 
-      - name: Deploy to AWS Lambda
-        uses: aws-actions/aws-cli-action@v2
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v3
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-2
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ env.AWS_ROLE_TO_ASSUME }}
+          role-session-name: GitHubActionsLambdaDeployment
 
-      - run: |
-          aws lambda update-function-code \
-            --function-name Yfinance-Data-ETL \
-            --zip-file fileb://lambda_function.zip
+      - name: Zip the Lambda function
+        run: zip function.zip lambda_function.py
+
+      - name: Check if Lambda function exists
+        id: check_lambda
+        run: |
+          if aws lambda get-function --function-name ${{ env.LAMBDA_FUNCTION_NAME }}; then
+            echo "::set-output name=lambda_exists::true"
+          else
+            echo "::set-output name=lambda_exists::false"
+          fi
+
+      - name: Create or Update Lambda function
+        run: |
+          if [ "${{ steps.check_lambda.outputs.lambda_exists }}" == "false" ]; then
+            echo "Creating Lambda function..."
+            aws lambda create-function \
+              --function-name ${{ env.LAMBDA_FUNCTION_NAME }} \
+              --runtime python3.8 \
+              --role ${{ env.AWS_ROLE_TO_ASSUME }} \
+              --handler lambda_function.lambda_handler \
+              --zip-file fileb://function.zip
+          else
+            echo "Updating Lambda function..."
+            aws lambda update-function-code \
+              --function-name ${{ env.LAMBDA_FUNCTION_NAME }} \
+              --zip-file fileb://function.zip \
+              --publish
+          fi
+
+      - name: Clean up
+        run: rm function.zip
