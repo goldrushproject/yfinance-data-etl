@@ -1,6 +1,6 @@
 import json
-import yfinance as yf
-import pandas as pd
+import app.package.yfinance as yf
+import app.package.pandas as pd
 from io import StringIO
 
 
