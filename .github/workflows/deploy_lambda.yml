@@ -31,7 +31,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -r app/requirements.txt
+          pip install -r app/requirements.txt -t app/
 
       - name: Run unit tests
         run: |
@@ -47,7 +47,9 @@ jobs:
           role-session-name: GitHubActionsLambdaDeployment
 
       - name: Zip the Lambda function
-        run: zip function.zip app/app.py
+        run: |
+          cd app/
+          zip -r ../function.zip . -x "*.git*" "*__pycache__*"
 
       - name: Check if Lambda function exists
         id: check_lambda
