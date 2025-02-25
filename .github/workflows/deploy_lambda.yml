@@ -53,9 +53,9 @@ jobs:
           mkdir package
           pip install -r requirements.txt -t ./package
           cd package
-          zip -r ../deployment_package.zip .
+          zip -r ../../deployment_package.zip .
           cd ..
-          zip deployment_package.zip app.py
+          zip ../deployment_package.zip app.py
 
       - name: Check if Lambda function exists
         id: check_lambda
