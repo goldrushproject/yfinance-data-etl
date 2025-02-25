@@ -1,4 +1,6 @@
 import json
+import yfinance as yf
+import pandas as pd
 
 
 def lambda_handler(event, context):

@@ -1,2 +1,4 @@
 awscli 
 pytest
+yfinance
+pandas
