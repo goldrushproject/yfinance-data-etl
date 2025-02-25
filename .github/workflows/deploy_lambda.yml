@@ -32,10 +32,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r tests/test_requirements.txt
-          cd app/
-          mkdir package
-          pip install -r requirements.txt -t package/
-          cd ..
+          pip install -r app/requirements.txt
 
       - name: Run unit tests
         run: |
@@ -50,9 +47,11 @@ jobs:
           role-to-assume: ${{ env.AWS_ROLE_TO_ASSUME }}
           role-session-name: GitHubActionsLambdaDeployment
 
-      - name: Zip the Lambda function and dependencies
+      - name: Inject dependencies and zip the Lambda function
         run: |
           cd app/
+          mkdir package
+          pip install -r requirements.txt -t package/
           cd package
           zip -r ../my_deployment_package.zip .
           cd ..
