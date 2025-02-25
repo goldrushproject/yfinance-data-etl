@@ -2,8 +2,8 @@ import unittest
 from app import lambda_handler
 
 
-class TestLambdaFunction(unittest.TestCase):
-    def test_lambda_function(self):
+class TestApp(unittest.TestCase):
+    def test_app(self):
         event = {"max_time_window": 10, "ticker_symbol": "AAPL"}
         context = {}
         response = lambda_handler(event, context)
