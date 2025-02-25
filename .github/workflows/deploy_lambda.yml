@@ -53,9 +53,9 @@ jobs:
           mkdir package
           pip install -r requirements.txt -t ./package
           cd package
-          zip -r ../my_deployment_package.zip .
+          zip -r ../deployment_package.zip .
           cd ..
-          zip my_deployment_package.zip app.py
+          zip deployment_package.zip app.py
 
       - name: Check if Lambda function exists
         id: check_lambda
@@ -75,14 +75,14 @@ jobs:
               --runtime python3.12 \
               --role ${{ env.AWS_ROLE_TO_ASSUME }} \
               --handler app.lambda_handler \
-              --zip-file fileb://function.zip
+              --zip-file fileb://deployment_package.zip
           else
             echo "Updating Lambda function..."
             aws lambda update-function-code \
               --function-name ${{ env.LAMBDA_FUNCTION_NAME }} \
-              --zip-file fileb://function.zip \
+              --zip-file fileb://deployment_package.zip \
               --publish
           fi
 
       - name: Clean up
-        run: rm function.zip
+        run: rm deployment_package.zip
