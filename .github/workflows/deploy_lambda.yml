@@ -35,7 +35,7 @@ jobs:
 
       - name: Run unit tests
         run: |
-          python -m unittest discover -s . -p 'app/test_*.py'
+          python -m unittest discover -s ./app -p 'test_*.py'
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v3
