@@ -31,12 +31,15 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -r app/test_requirements.txt
-          pip install -r app/requirements.txt
+          pip install -r tests/test_requirements.txt
+          cd app/
+          mkdir package
+          pip install -r requirements.txt -t package/
+          cd ..
 
       - name: Run unit tests
         run: |
-          python -m unittest discover -s ./app -p 'test_*.py'
+          python -m unittest discover -s ./tests -p 'test_*.py'
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v3
@@ -47,11 +50,13 @@ jobs:
           role-to-assume: ${{ env.AWS_ROLE_TO_ASSUME }}
           role-session-name: GitHubActionsLambdaDeployment
 
-      - name: Inject dependencies and zip the Lambda function
+      - name: Zip the Lambda function and dependencies
         run: |
-          pip install -r app/requirements.txt --target=app/
           cd app/
-          zip -r ../function.zip . -x "*.git*" "*__pycache__*"
+          cd package
+          zip -r ../my_deployment_package.zip .
+          cd ..
+          zip ../function.zip my_deployment_package.zip app.py -x "*.git*" "*__pycache__*"
 
       - name: Check if Lambda function exists
         id: check_lambda
