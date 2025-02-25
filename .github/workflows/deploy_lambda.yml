@@ -51,11 +51,11 @@ jobs:
         run: |
           cd app/
           mkdir package
-          pip install -r requirements.txt -t package/
+          pip install -r requirements.txt -t ./package
           cd package
           zip -r ../my_deployment_package.zip .
           cd ..
-          zip ../function.zip my_deployment_package.zip app.py -x "*.git*" "*__pycache__*"
+          zip my_deployment_package.zip app.py
 
       - name: Check if Lambda function exists
         id: check_lambda
