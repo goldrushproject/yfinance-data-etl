@@ -38,7 +38,7 @@ def lambda_handler(event, context):
     ]
 
     # Convert DataFrame to JSON
-    stock_data_json = stock_data_df.to_json()
+    stock_data_json = stock_data_df.to_json(orient='records', indent=4)
     print(stock_data_json)
 
     # Example processing
@@ -53,7 +53,8 @@ def lambda_handler(event, context):
                 "max_time_window": max_time_window,
                 "ticker_symbol": ticker_symbol,
                 "interval": interval,
-                "stock_data": stock_data_json,
-            }
+                "stock_data": json.loads(stock_data_json),
+            },
+            indent=4
         ),
     }
