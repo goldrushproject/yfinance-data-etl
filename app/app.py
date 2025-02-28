@@ -39,10 +39,10 @@ def lambda_handler(event, context):
 
     # Convert DataFrame to JSON
     stock_data_json = stock_data_df.to_json(orient='records', indent=4)
-    print(stock_data_json)
+    # print(stock_data_json)
 
     # Example processing
-    message = f"Hello from Lambda! Received ticker {ticker_symbol} with a time window of {max_time_window} and interval {interval}."
+    message = f"Acquired data from ticker {ticker_symbol} with a time window of {max_time_window} and interval {interval}."
 
     # Return a response
     return {
