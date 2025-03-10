@@ -12,10 +12,6 @@ def lambda_handler(event, context):
     ticker_symbol = event.get("ticker_symbol", "AAPL")
     interval = event.get("interval", "1h")
 
-    print(f"Max Time Window: {max_time_window}")
-    print(f"Ticker Symbol: {ticker_symbol}")
-    print(f"Interval: {interval}")
-
     # Fetch stock data
     stock_data = yf.download(
         ticker_symbol, period=f"{max_time_window}d", interval=interval
@@ -23,7 +19,6 @@ def lambda_handler(event, context):
 
     # Convert stock data to JSON
     stock_data_json = stock_data.to_json()
-    # print(stock_data_json)
 
     # Load stock data JSON to DataFrame
     stock_data_df = pd.read_json(StringIO(stock_data_json))
@@ -41,19 +36,14 @@ def lambda_handler(event, context):
     stock_data_json = stock_data_df.to_json(orient='records', indent=4)
     # print(stock_data_json)
 
-    # Example processing
-    message = f"Acquired data from ticker {ticker_symbol} with a time window of {max_time_window} and interval {interval}."
-
-    # Return a response
     return {
         "statusCode": 200,
         "body": json.dumps(
             {
-                "message": message,
-                "max_time_window": max_time_window,
                 "ticker_symbol": ticker_symbol,
+                "max_time_window": max_time_window,
                 "interval": interval,
-                "stock_data": json.loads(stock_data_json),
+                "data": json.loads(stock_data_json),
             },
             indent=4
         ),

@@ -10,7 +10,6 @@ class TestApp(unittest.TestCase):
         response = lambda_handler(event, context)
         try:
             self.assertEqual(response["statusCode"], 200)
-            self.assertIn("Hello from Lambda!", response["body"])
             self.assertIn("AAPL", response["body"])
             self.assertIn("2", response["body"])
         except AssertionError as e:
