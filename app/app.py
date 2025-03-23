@@ -5,8 +5,6 @@ from io import StringIO
 
 
 def lambda_handler(event, context):
-    print("Received event: " + json.dumps(event, indent=2))
-
     # Extract parameters
     max_time_window = event.get("max_time_window", 1)
     ticker_symbol = event.get("ticker_symbol", "AAPL")
