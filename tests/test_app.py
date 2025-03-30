@@ -8,7 +8,7 @@ class TestApp(unittest.TestCase):
         event = {
             "StatePayload": {
                 "ticker_symbol": "TSLA",
-                "max_time_window": 1,
+                "sample_time_window": 1,
                 "interval": "1m"
             }
         }
