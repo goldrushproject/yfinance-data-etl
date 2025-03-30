@@ -46,3 +46,7 @@ config.json
 
 # Ignore pip-installed packages
 pip-wheel-metadata/
+
+# Ignore ssh keys
+*.pem
+*.pub
