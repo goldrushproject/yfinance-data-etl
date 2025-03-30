@@ -9,7 +9,7 @@ from requests.exceptions import HTTPError
 def lambda_handler(event, context):
     # Extract parameters
     state_payload = event.get("StatePayload")
-    max_time_window = state_payload["max_time_window"]
+    sample_time_window = state_payload["sample_time_window"]
     ticker_symbol = state_payload["ticker_symbol"]
     interval = state_payload["interval"]
 
@@ -60,7 +60,7 @@ def lambda_handler(event, context):
     # Gather all useful data
     response_data = {
         "ticker_symbol": ticker_symbol,
-        "max_time_window": max_time_window,
+        "sample_time_window": sample_time_window,
         "interval": interval,
         "pe_ratio": pe_ratio,
         "eps": eps,
