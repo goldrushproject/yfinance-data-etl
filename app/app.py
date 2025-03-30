@@ -8,9 +8,9 @@ from requests.exceptions import HTTPError
 
 def lambda_handler(event, context):
     # Extract parameters
-    max_time_window = event.get("max_time_window", 1)
-    ticker_symbol = event.get("ticker_symbol", "AAPL")
-    interval = event.get("interval", "1h")
+    max_time_window = event.get("max_time_window")
+    ticker_symbol = event.get("ticker_symbol")
+    interval = event.get("interval")
 
     # Fetch stock data with exponential backoff
     stock_data = safe_yf_download(ticker_symbol, max_time_window, interval)
