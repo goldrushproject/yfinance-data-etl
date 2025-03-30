@@ -11,9 +11,24 @@ def lambda_handler(event, context):
     interval = event.get("interval", "1h")
 
     # Fetch stock data
-    stock_data = yf.download(
-        ticker_symbol, period=f"{max_time_window}d", interval=interval
-    )
+    stock_data = yf.download(ticker_symbol, period=f"{max_time_window}d", interval=interval)
+
+    # Extract fundamental information
+    ticker = yf.Ticker(ticker_symbol)
+    company_info = ticker.info
+    pe_ratio = company_info.get('trailingPE', 'N/A')
+    eps = company_info.get('trailingEps', 'N/A')
+    market_cap = company_info.get('marketCap', 'N/A')
+    beta = company_info.get('beta', 'N/A')
+    dividend_yield = company_info.get('dividendYield', 'N/A')
+    sector = company_info.get('sector', 'N/A')
+    industry = company_info.get('industry', 'N/A')
+    country = company_info.get('country', 'N/A')
+
+    # Technical Indicators
+    stock_data['MA50'] = stock_data['Close'].rolling(window=50).mean()  # 50-period moving average
+    stock_data['MA200'] = stock_data['Close'].rolling(window=200).mean()  # 200-period moving average
+    stock_data['RSI'] = compute_rsi(stock_data['Close'], window=14)  # 14-period RSI
 
     # Convert stock data to JSON
     stock_data_json = stock_data.to_json()
@@ -21,44 +36,50 @@ def lambda_handler(event, context):
     # Load stock data JSON to DataFrame
     stock_data_df = pd.read_json(StringIO(stock_data_json))
 
-    # Change column names
-    stock_data_df.columns = [
-        "Open",
-        "High",
-        "Low",
-        "Close",
-        "Volume",
-    ]
-
-    # Ensure the index is a datetime index
+    # Clean DataFrame
+    stock_data_df.columns = ["Open", "High", "Low", "Close", "Volume", "MA50", "MA200", "RSI"]
     stock_data_df.index = pd.to_datetime(stock_data_df.index)
-
-    # Handle missing values by forward and backward filling
     stock_data_df = stock_data_df.ffill().bfill()
-
-    # Remove any duplicate entries in case the data is irregular
     stock_data_df = stock_data_df.loc[~stock_data_df.index.duplicated(keep='first')]
 
-    # Remove extreme outliers using IQR-based filtering
+    # Remove outliers and NaN values
     Q1 = stock_data_df['Close'].quantile(0.25)
     Q3 = stock_data_df['Close'].quantile(0.75)
     IQR = Q3 - Q1
     lower_bound = Q1 - 1.5 * IQR
     upper_bound = Q3 + 1.5 * IQR
     stock_data_df = stock_data_df[(stock_data_df['Close'] >= lower_bound) & (stock_data_df['Close'] <= upper_bound)]
-
-    # Remove NaN values
     clean_data = stock_data_df.dropna()
 
-    # Convert DataFrame to JSON for response
+    # Return additional information with stock data
     clean_data_json = clean_data.to_json(orient='records', indent=4)
+    
+    # Gather all useful data
+    response_data = {
+        "ticker_symbol": ticker_symbol,
+        "max_time_window": max_time_window,
+        "interval": interval,
+        "pe_ratio": pe_ratio,
+        "eps": eps,
+        "market_cap": market_cap,
+        "beta": beta,
+        "dividend_yield": dividend_yield,
+        "sector": sector,
+        "industry": industry,
+        "country": country,
+        "data": json.loads(clean_data_json)
+    }
 
     return {
         "statusCode": 200,
-        "body": {
-                "ticker_symbol": ticker_symbol,
-                "max_time_window": max_time_window,
-                "interval": interval,
-                "data": json.loads(clean_data_json)
-            },
+        "body": response_data,
     }
+
+# Helper function to compute RSI (Relative Strength Index)
+def compute_rsi(series, window=14):
+    delta = series.diff()
+    gain = (delta.where(delta > 0, 0)).rolling(window=window).mean()
+    loss = (-delta.where(delta < 0, 0)).rolling(window=window).mean()
+    rs = gain / loss
+    rsi = 100 - (100 / (1 + rs))
+    return rsi
