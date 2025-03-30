@@ -3,6 +3,8 @@ import yfinance as yf
 import pandas as pd
 import numpy as np
 from io import StringIO
+import time
+from requests.exceptions import HTTPError
 
 def lambda_handler(event, context):
     # Extract parameters
@@ -10,8 +12,8 @@ def lambda_handler(event, context):
     ticker_symbol = event.get("ticker_symbol", "AAPL")
     interval = event.get("interval", "1h")
 
-    # Fetch stock data
-    stock_data = yf.download(ticker_symbol, period=f"{max_time_window}d", interval=interval)
+    # Fetch stock data with exponential backoff
+    stock_data = safe_yf_download(ticker_symbol, max_time_window, interval)
 
     # Extract fundamental information
     ticker = yf.Ticker(ticker_symbol)
@@ -83,3 +85,19 @@ def compute_rsi(series, window=14):
     rs = gain / loss
     rsi = 100 - (100 / (1 + rs))
     return rsi
+
+# Helper function to safely download stock data with exponential backoff
+def safe_yf_download(ticker_symbol, max_time_window, interval, retries=5, delay=5):
+    for attempt in range(retries):
+        try:
+            stock_data = yf.download(ticker_symbol, period=f"{max_time_window}d", interval=interval)
+            return stock_data
+        except HTTPError as e:
+            if "TooManyRequests" in str(e):
+                print(f"Rate limit hit for {ticker_symbol}. Retrying in {delay} seconds...")
+                time.sleep(delay)
+                delay *= 2  # Exponential backoff
+            else:
+                raise  # Re-raise if not related to rate limiting
+    raise Exception(f"Max retries exceeded for downloading {ticker_symbol} data.")
+
