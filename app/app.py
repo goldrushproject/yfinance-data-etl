@@ -14,7 +14,7 @@ def lambda_handler(event, context):
     interval = state_payload["interval"]
 
     # Fetch stock data with exponential backoff
-    stock_data = safe_yf_download(ticker_symbol, max_time_window, interval)
+    stock_data = safe_yf_download(ticker_symbol, sample_time_window, interval)
 
     # Extract fundamental information
     ticker = yf.Ticker(ticker_symbol)
@@ -88,10 +88,10 @@ def compute_rsi(series, window=14):
     return rsi
 
 # Helper function to safely download stock data with exponential backoff
-def safe_yf_download(ticker_symbol, max_time_window, interval, retries=5, delay=5):
+def safe_yf_download(ticker_symbol, sample_time_window, interval, retries=5, delay=5):
     for attempt in range(retries):
         try:
-            stock_data = yf.download(ticker_symbol, period=f"{max_time_window}d", interval=interval)
+            stock_data = yf.download(ticker_symbol, period=f"{sample_time_window}d", interval=interval)
             return stock_data
         except HTTPError as e:
             if "TooManyRequests" in str(e):
