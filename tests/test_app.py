@@ -5,7 +5,13 @@ from app.app import lambda_handler
 
 class TestApp(unittest.TestCase):
     def test_app(self):
-        event = {"max_time_window": 1, "ticker_symbol": "TSLA", "interval": "1m"}
+        event = {
+            "StatePayload": {
+                "ticker_symbol": "TSLA",
+                "max_time_window": 1,
+                "interval": "1m"
+            }
+        }
         context = {}
         response = lambda_handler(event, context)
         try:
