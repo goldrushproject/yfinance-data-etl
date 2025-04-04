@@ -54,8 +54,11 @@ def lambda_handler(event, context):
     stock_data_df = stock_data_df[(stock_data_df['Close'] >= lower_bound) & (stock_data_df['Close'] <= upper_bound)]
     clean_data = stock_data_df.dropna()
 
+    # Reset index to include datetime in the response
+    clean_data = clean_data.reset_index().rename(columns={"index": "Datetime"})
+
     # Return additional information with stock data
-    clean_data_json = clean_data.to_json(orient='records', indent=4)
+    clean_data_json = clean_data.to_json(orient='records', date_format='iso', indent=4)
     
     # Gather all useful data
     response_data = {
